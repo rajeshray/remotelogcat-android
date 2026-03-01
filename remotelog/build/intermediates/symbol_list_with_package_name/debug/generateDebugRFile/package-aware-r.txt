@@ -1,2 +1,0 @@
-com.remotelog
-xml remotelog_file_paths

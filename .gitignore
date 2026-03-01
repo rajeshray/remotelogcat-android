@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+.gradle-home/
+**/build/
+
+# Local env
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# Kotlin/Android caches
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
