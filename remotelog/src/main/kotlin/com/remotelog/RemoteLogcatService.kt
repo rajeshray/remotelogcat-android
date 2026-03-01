@@ -1,16 +1,19 @@
 package com.remotelog
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import java.io.File
 
 internal class RemoteLogcatService : Service() {
@@ -18,7 +21,7 @@ internal class RemoteLogcatService : Service() {
     companion object {
         private const val CHANNEL_ID = "remotelog_channel"
         private const val NOTIFICATION_ID = 7829
-        private const val ACTION_SHARE = "com.remotelog.ACTION_SHARE"
+        internal const val ACTION_OPEN_REPORT = "com.remotelog.ACTION_OPEN_REPORT"
     }
 
     private lateinit var logcatReader: LogcatReader
@@ -31,7 +34,9 @@ internal class RemoteLogcatService : Service() {
         super.onCreate()
 
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification(isCrash = false))
+        if (canShowNotification()) {
+            startForeground(NOTIFICATION_ID, buildNotification(isCrash = false))
+        }
 
         buffer = CircularLogBuffer(RemoteLogcat.config.maxLogLines)
         buffer.push("[REMOTELOGCAT] Service created")
@@ -80,7 +85,7 @@ internal class RemoteLogcatService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_SHARE) {
+        if (intent?.action == ACTION_OPEN_REPORT) {
             handleShareAction()
         }
         return START_STICKY
@@ -119,7 +124,7 @@ internal class RemoteLogcatService : Service() {
         val config = RemoteLogcat.config
 
         val viewReportIntent = Intent(this, RemoteLogcatService::class.java).apply {
-            action = ACTION_SHARE
+            action = ACTION_OPEN_REPORT
         }
         val viewReportPendingIntent = PendingIntent.getService(
             this,
@@ -144,6 +149,7 @@ internal class RemoteLogcatService : Service() {
     }
 
     private fun updateNotificationToCrashState() {
+        if (!canShowNotification()) return
         val manager = getSystemService(NotificationManager::class.java)
         manager.notify(NOTIFICATION_ID, buildNotification(isCrash = true))
     }
@@ -212,5 +218,13 @@ internal class RemoteLogcatService : Service() {
                     buffer.push("[REMOTELOGCAT][ERROR] Failed deleting report file ${file.name}: ${throwable.message}")
                 }
         }
+    }
+
+    private fun canShowNotification(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }

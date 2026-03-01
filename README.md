@@ -26,7 +26,7 @@ dependencyResolutionManagement {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    debugImplementation("com.github.rajeshray:remotelogcat-android:1.0.6")
+    debugImplementation("com.github.rajeshray:remotelogcat-android:1.0.7")
 }
 ```
 
@@ -47,8 +47,9 @@ class App : Application() {
 
 Foreground notification requires runtime `POST_NOTIFICATIONS` permission on Android 13+.
 
-- If permission is not granted, SDK skips starting the foreground service.
-- Request permission in your app before/around SDK init.
+- SDK still starts and captures logs in first session.
+- Without permission, notification visibility/actions may be limited.
+- Request permission in your app for full notification + report/share UX.
 
 Example:
 
@@ -64,6 +65,12 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 2. Notification appears with text like `Tap to see report`.
 3. Tapping notification opens SDK report preview screen.
 4. QA taps `Share` inside preview to open Android share sheet.
+
+If notification permission is denied, open report manually from app/debug menu:
+
+```kotlin
+RemoteLogcat.openReport(context)
+```
 
 Crash flow:
 1. App crashes.
@@ -106,6 +113,12 @@ Use breadcrumbs for business-context events:
 ```kotlin
 RemoteLogcat.breadcrumb("Checkout started", mapOf("cartId" to "C123"))
 RemoteLogcat.breadcrumb("Payment failed", mapOf("httpCode" to "500"))
+```
+
+You can also open the report screen directly:
+
+```kotlin
+RemoteLogcat.openReport(this)
 ```
 
 Tips:

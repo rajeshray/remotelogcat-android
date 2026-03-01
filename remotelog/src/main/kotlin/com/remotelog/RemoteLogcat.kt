@@ -1,11 +1,11 @@
 package com.remotelog
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.content.ContextCompat
-import android.content.pm.PackageManager
 
 object RemoteLogcat {
 
@@ -24,23 +24,24 @@ object RemoteLogcat {
             )
         )
 
-        // Android 13+ requires runtime permission for visible notifications.
-        // Skip service start until host app grants POST_NOTIFICATIONS.
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        val intent = Intent(context.applicationContext, RemoteLogcatService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val appContext = context.applicationContext
+        val intent = Intent(appContext, RemoteLogcatService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasNotificationPermission(appContext)) {
             context.applicationContext.startForegroundService(intent)
         } else {
             context.applicationContext.startService(intent)
+        }
+    }
+
+    fun openReport(context: Context) {
+        val appContext = context.applicationContext
+        val intent = Intent(appContext, RemoteLogcatService::class.java).apply {
+            action = RemoteLogcatService.ACTION_OPEN_REPORT
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasNotificationPermission(appContext)) {
+            appContext.startForegroundService(intent)
+        } else {
+            appContext.startService(intent)
         }
     }
 
@@ -53,6 +54,14 @@ object RemoteLogcat {
                 attributes = attrs
             )
         )
+    }
+
+    private fun hasNotificationPermission(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }
 
