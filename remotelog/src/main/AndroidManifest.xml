@@ -17,7 +17,7 @@
             android:exported="false" />
 
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name="com.remotelog.RemoteLogcatFileProvider"
             android:authorities="${applicationId}.remotelog.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

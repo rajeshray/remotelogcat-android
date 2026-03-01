@@ -26,7 +26,7 @@ dependencyResolutionManagement {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    debugImplementation("com.github.rajeshray:remotelog:1.0.5")
+    debugImplementation("com.github.rajeshray:remotelogcat-android:1.0.6")
 }
 ```
 
