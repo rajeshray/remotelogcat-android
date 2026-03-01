@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.remotelog.RemoteLogcat
 
 class MainActivity : Activity() {
 
@@ -38,7 +37,7 @@ class MainActivity : Activity() {
         val crashButton = Button(this).apply {
             text = "Trigger Test Crash"
             setOnClickListener {
-                RemoteLogcat.breadcrumb(
+                DebugRemoteLogcat.breadcrumb(
                     message = "User tapped crash button",
                     attrs = mapOf("screen" to "MainActivity")
                 )
@@ -51,7 +50,7 @@ class MainActivity : Activity() {
         root.addView(crashButton)
 
         setContentView(root)
-        RemoteLogcat.breadcrumb(
+        DebugRemoteLogcat.breadcrumb(
             message = "MainActivity opened",
             attrs = mapOf("intentAction" to (intent?.action ?: "none"))
         )
@@ -80,8 +79,7 @@ class MainActivity : Activity() {
         if (requestCode == REQ_POST_NOTIFICATIONS) {
             val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
             if (granted) {
-                // Start SDK service now that notifications are allowed.
-                RemoteLogcat.init(this)
+                DebugRemoteLogcat.onNotificationPermissionGranted(this)
             }
         }
     }
